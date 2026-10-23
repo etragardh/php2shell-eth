@@ -1,0 +1,9 @@
+services:
+  web:
+    image: php:8.3.35-apache
+    volumes:
+      - ./html:/var/www/html
+      - ./php.ini-production:/usr/local/etc/php/php.ini:ro
+    ports:
+      - "8080:80"
+    restart: unless-stopped
