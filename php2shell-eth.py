@@ -8,6 +8,7 @@ disclosure; this driver never reads /proc or invokes a debugger.
 from __future__ import annotations
 
 import argparse
+import sys
 import time
 
 from a1 import a1_parts, send_a1
@@ -339,7 +340,7 @@ def chain(args: argparse.Namespace, profile: Profile, command: bytes) -> int:
         return 0
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("host", nargs="?", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=19435)
@@ -355,7 +356,12 @@ def main() -> int:
         default=DEFAULT_COMMAND.decode("ascii"),
         help="command passed to the target's system() during B2",
     )
-    args = parser.parse_args()
+    if argv is None:
+        argv = sys.argv[1:]
+    if not argv:
+        parser.print_help()
+        return 0
+    args = parser.parse_args(argv)
     if args.list_profiles:
         for name in PROFILES:
             print(name)

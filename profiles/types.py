@@ -102,6 +102,9 @@ class AllocatorLayout:
     min_libphp_main_delta: int
     max_libphp_main_delta: int
     min_dtor_repetitions: int
+    main_cluster_min_slots: int = 0
+    main_cluster_min_unique: int = 0
+    main_cluster_min_unique_ratio: float = 0.0
 
 
 @dataclass(frozen=True)

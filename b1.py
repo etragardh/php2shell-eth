@@ -406,6 +406,24 @@ def analyse(
     # A unique structural candidate is safe to hand to A2/B2.  Pointer cluster
     # rank alone deliberately never populates this field.
     request_main_base = next(iter(main_counts)) if len(main_counts) == 1 else None
+    main_recovery = "chunk_header" if request_main_base is not None else None
+
+    # A profile whose stale ID is inside the persistent main chunk cannot
+    # disclose that chunk's header with a forward string leak.  Such profiles
+    # may explicitly allow one uniquely dense and address-diverse pointer
+    # cluster as alternate main evidence.  Zero thresholds keep the stricter
+    # chunk-header-only behaviour for all existing profiles.
+    if request_main_base is None and allocator.main_cluster_min_slots > 0:
+        dense = [
+            item for item in heap_candidates
+            if item["slots"] >= allocator.main_cluster_min_slots
+            and item["unique"] >= allocator.main_cluster_min_unique
+            and item["unique"] / item["slots"]
+            >= allocator.main_cluster_min_unique_ratio
+        ]
+        if len(dense) == 1:
+            request_main_base = dense[0]["base"]
+            main_recovery = "profile_dense_pointer_cluster"
 
     return {
         "decoded": len(data),
@@ -418,6 +436,7 @@ def analyse(
         "main_candidates": main_counts.most_common(),
         "request_main_candidates": main_counts.most_common(),
         "request_main_base": request_main_base,
+        "main_recovery": main_recovery,
         "repeated": repeated,
         "libphp_candidates": libphp[:16],
     }

