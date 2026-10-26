@@ -1,209 +1,170 @@
-# php2shell-eth (Etragardh)
+# php2shell-eth
 
-Profile-driven reproducer for the PHP multipart/session chain studied in this
-repository.  It recovers request-heap and `libphp.so` bases from the target's
-HTTP response and then passes a caller-supplied command to the final B2 stage.
+`php2shell-eth` is a profile-driven research proof of concept for PHP
+request-lifecycle vulnerabilities. Its primary interface is an interactive TUI;
+the same runs can also be started from the CLI.
 
-Use it only against systems you own or are explicitly authorized to test.
+Use it only on systems you own or are explicitly authorized to test.
 
-## Requirements
+[Watch the video demo](https://youtu.be/ARz68mAv9wk)
 
-- Python 3.10 or newer on the machine running the PoC;
-- no third-party Python packages (standard library only);
-- direct TCP access to the target HTTP port;
-- Apache `mpm_prefork`/`apache2handler` matching a bundled profile;
-- an exact match for the profile's architecture, PHP build, extensions and
-  effective ini configuration.
+![php2shell-eth TUI](docs/php2shell-eth-tui.png)
 
-The included profiles target official `php:8.3.35-apache` image builds:
+## Install
 
-- `php-8.3.35-arm64-official` — unmodified `php.ini-production`;
-- `php-8.3.35-arm64-official-no-ini` — no loaded main `php.ini`.
-- `php-8.3.35-amd64-official` — AMD64 with unmodified
-  `php.ini-production`.
-
-List or inspect profiles without contacting a target:
+Python 3.11 or newer is required. A virtual environment is recommended:
 
 ```sh
-./php2shell-eth.py --list-profiles
-./php2shell-eth.py \
-  --profile php-8.3.35-arm64-official-no-ini --show-profile
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install -e .
 ```
 
-## Run
+## TUI (recommended)
 
-Start with a harmless marker command in an isolated lab:
+Start the program without arguments:
 
 ```sh
-./php2shell-eth.py 127.0.0.1 \
-  --port 8080 \
-  --workers 150 \
-  --profile php-8.3.35-arm64-official \
-  --cmd 'id >/tmp/php2shell-eth'
+./php2shell-eth.py
 ```
 
-`--cmd` is UTF-8 encoded and inserted into the forged string consumed by the
-target's `system()`.  Quote it for the local shell; shell metacharacters are
-interpreted on the target.  NUL bytes and commands that do not fit the
-selected profile's B2 carrier are rejected before any request is sent.  The
-bundled profiles currently allow at most 191 command bytes.
+Build the target contract from the selectors:
 
-Useful options:
+1. Choose the PHP release and execution model.
+2. Choose the runtime product and **target container** architecture.
+3. Choose the matching INI contract.
+4. Enter the absolute target URL and command.
+5. Add HTTP verification and an evidence directory when needed.
 
-```text
---path /index.php       request path
---retries 3             A1/B1 attempts
---leak-only             stop after recovering main/libphp bases
---profile NAME          select an exact target contract
---workers N             target request-processing slots; see below
-```
+Leave `MaxRequestWorkers` empty to use the selected profile's default. Override
+it only when the target Apache configuration is known to use another value.
 
-A calibrated B2 normally terminates its Apache child, so success is
-consistent with an empty HTTP response.  A normal response is reported as
-`B2_UNCONFIRMED` (exit 4).  Always verify the requested side effect on a lab
-target when possible.
+- `Ctrl+R` runs the resolved plan and opens the live-output dialog.
+- `Ctrl+Q` stops an active run and quits.
+- **Copy candidate CLI** copies the exact digest-bound CLI command.
+- **Reset** clears the form.
 
-## Chain
+Opening and navigating the TUI sends no network traffic. The TUI resolves a
+local profile contract; it does not fingerprint or attest the live target.
 
-1. **A1** drives multipart/session cleanup into an OOM bailout, leaving stale
-   process-global session pointers into the destroyed request heap.
-2. **B1** places a forged `zend_string` at the stale session-ID address.  The
-   resulting `Set-Cookie` discloses enough target memory to recover a
-   structural ZendMM main-chunk base and repeated `zval_ptr_dtor` pointers,
-   from which the `libphp.so` base is derived.
-3. **A2** reaches a second calibrated OOM after publishing a request-allocated
-   `zend_reference` through `PS(http_session_vars)`.
-4. **B2** reclaims that stale reference and supplies a fake `HashTable` whose
-   destructor points to `zif_system`.  The `--cmd` bytes occupy the synthetic
-   argument string.
+## CLI
 
-Absolute ASLR addresses are not stored in a profile.  B1 derives them anew
-from the target response on every run.
-
-## Profiles
-
-Profiles live in `profiles/`, one module per exact environment.  A profile is
-a calibrated contract, not a random seed.  It declares:
-
-- image/build identity and effective ini settings;
-- architecture and Zend ABI field offsets;
-- ZendMM geometry and leak-validation rules;
-- build-relative `libphp.so` symbol offsets;
-- request-main-relative stale-object/carrier offsets;
-- complete A1, B1, A2 and B2 request geometry and expected statuses.
-
-The command is intentionally not profile data.  It is validated at runtime
-and supplied with `--cmd`.
-
-Profile modules are discovered automatically at startup.  To add one, create
-a non-private `.py` file in `profiles/` that exposes a `PROFILE` instance with
-a unique `PROFILE.name`; no registry import or tuple entry is needed.  Files
-whose names begin with `_` are ignored, and `types.py` is reserved for the
-shared profile schema.  The current default remains
-`php-8.3.35-arm64-official`.
-
-Changing only an ini value can change request allocation order and require a
-new profile.  A different architecture, PHP build, SAPI, extension set or
-allocator history must not be assumed compatible merely because `php -v`
-shows the same version.
-
-In simpler words: A valid profile for the target environment is required for successful exploitation. And you changing as much as a single ini-setting might be enough to skew the calibration.
-
-## Choosing `--workers`
-
-All four stages must reach the same Apache child.  With `--workers N`, the PoC
-opens `N-1` incomplete request bodies and leaves one request-processing slot
-for the chain.  The holders send 1024-byte heartbeats every 0.75 seconds so
-Apache's `mod_reqtimeout` does not discard them during a WAN transfer.
-
-For a dedicated one-worker lab, use:
-
-```text
---workers 1
-```
-
-For prefork Apache, `N` must equal the effective `MaxRequestWorkers`, not the
-number of child processes visible at one instant.  Too small leaves multiple
-uncontrolled workers; too large can occupy every worker or leave requests in
-the listen backlog.
-
-On Debian-derived Apache installations, inspect the active configuration:
+Inspect the available profiles before selecting one:
 
 ```sh
-apachectl -M 2>&1 | grep mpm
-apachectl -t -D DUMP_INCLUDES
-grep -RniE '^[[:space:]]*(ServerLimit|MaxRequestWorkers)[[:space:]]' \
-  /etc/apache2/mods-enabled /etc/apache2/conf-enabled
+./php2shell-eth.py chains
+./php2shell-eth.py profiles
+./php2shell-eth.py describe \
+  modphp-pinned-v1/php-8.4.26-amd64-official-no-ini
 ```
 
-In Docker, run those commands inside the target container:
+Run one attempt with independent HTTP verification:
 
 ```sh
-docker exec TARGET apachectl -M
-docker exec TARGET sh -c \
-  "grep -RniE '^[[:space:]]*(ServerLimit|MaxRequestWorkers)[[:space:]]' \
-   /etc/apache2/mods-enabled /etc/apache2/conf-enabled"
+./php2shell-eth.py run http://target:8080/index.php \
+  --profile modphp-pinned-v1/php-8.4.26-amd64-official-no-ini \
+  --cmd 'printf p2s-7f31 >/var/www/html/proof.txt' \
+  --verify-path /proof.txt \
+  --verify-text p2s-7f31
 ```
 
-Use `DUMP_INCLUDES` to resolve override order.  The official image normally
-gets prefork's value from `mods-enabled/mpm_prefork.conf`, but mounted or
-later `conf-enabled` files can override it.  `server-status?auto` is useful
-for observing `BusyWorkers` and `IdleWorkers`, but it may not expose the
-configured maximum.
+This example assumes the PHP user can create the requested file under the web
+root. Use a fresh marker for every run.
 
-Do not calibrate through unrelated production traffic, a load balancer that
-can switch backends, or an unknown autoscaling pool.  Use a dedicated target
-instance whenever possible.  If a holder receives a response or disconnects,
-the runner stops with `WORKER_PINNING_FAILED` (exit 5) rather than continuing
-on an uncontrolled worker.
+Recover and validate the current heap and libphp bases without dispatching B2:
 
-## Calibrating another profile
+```sh
+./php2shell-eth.py run http://target:8080/index.php \
+  --profile modphp-pinned-v1/php-8.4.26-amd64-official-no-ini \
+  --cmd id \
+  --leak-only \
+  --evidence-dir ./evidence/run-001
+```
 
-Calibration requires a disposable target and a debugger.  The final runner
-does not use GDB or `/proc`, but those are appropriate while deriving a new
+`--cmd` remains required in leak-only mode, but the command is not dispatched.
+The evidence path must be a new directory. To see chain-specific options, pass
+the selected profile together with `--help`.
+
+The TUI-generated command also includes `--profile-digest`. This binds the run
+to the exact local manifest and aborts before network I/O if that manifest has
+changed.
+
+## Match the target exactly
+
+A PHP version string alone is not enough. A profile binds the important target
+properties, including:
+
+- PHP patch release and `apache2handler`/`mpm_prefork` execution model;
+- target architecture, not the computer running this client;
+- Docker Library PHP versus Docker Library WordPress;
+- OCI runtime bundle and libphp build identity;
+- loaded extensions, INI contract and relevant effective settings;
+- Apache `MaxRequestWorkers` and the stage-specific heap calibration.
+
+**No main ini** means no loaded `php.ini`; the image's normal scanned files
+under `conf.d` still apply. Removing `conf.d/*.ini`, including the standard
+OPcache or sodium snippets, creates a different target and requires another
 profile.
 
-1. Pin the exact image digest, architecture, SAPI, extension list,
-   `libphp.so` hash and complete effective ini contract.
-2. Clone the closest module in `profiles/`, give its `PROFILE` a unique name,
-   and keep the target at one worker.  The new module is discovered
-   automatically; do not edit `profiles/__init__.py`.
-3. Restart the worker before each candidate intended for the profile; warm
-   ZendMM cache history can make an accidental geometry look stable.
-4. Calibrate A1 and verify its bailout stack, stale `PS(id)`, `PS(mod_data)`,
-   cookie state and request-main-relative stale-ID offset.
-5. For B1, first obtain a short forged marker cookie.  Then find the minimum
-   disclosure that contains a valid chunk header and repeated natural
-   `zval_ptr_dtor` values.  Validate addresses only from the HTTP response.
-6. Verify A2's OOM in both status and body, then measure the stale
-   `PS(http_session_vars)` reference relative to request-main.
-7. Run B2 with refcount 2 and pause before multipart END.  Confirm reclaim and
-   measure the first fake-array carrier without executing its destructor.
-8. Put only relative offsets and request geometry in the profile.  Perform a
-   cold end-to-end run, verify the command side effect, and repeat on an
-   independent matching target.
+Docker tags are mutable. Use `describe` to inspect the expected image, binary,
+extensions and settings. A nearby PHP release, another package build, a changed
+extension set or a similar-looking WordPress image does not inherit a profile.
 
-The stage CLIs expose calibration overrides:
+Current profiles require direct HTTP access to matching Apache mod_php with
+`mpm_prefork` and session upload progress enabled. HTTPS termination, reverse
+proxies and PHP-FPM are not interchangeable with this execution path.
 
-```sh
-python3 a1.py --help
-python3 b1.py --help
-python3 a2b2.py --help
-```
+## Workers
 
-Run the included regression tests after editing the core or a profile:
+`--workers` is the target's configured `MaxRequestWorkers`; it is not client
+concurrency. The scheduler holds N-1 prefork children with incomplete requests
+so A1, B1, A2 and B2 reach the remaining child. A wrong value breaks worker
+affinity and invalidates the run.
+
+## Chain overview
+
+One invocation performs a single fail-closed attempt:
+
+1. Preflight the target and pin N-1 prefork workers.
+2. A1 creates the request-lifecycle stale state.
+3. B1 discloses and validates the current Zend heap and libphp bases.
+4. A2 creates the calibrated execution state.
+5. B2 dispatches the supplied command.
+6. Release the holders and optionally verify the result with a fresh GET.
+
+Runtime ASLR addresses come from the current B1 disclosure; they are not stored
+in a profile. There are no hidden stage retries.
+
+## Results and verification
+
+An empty B2 response, closed connection or dead Apache child is not proof of
+command execution.
+
+- `success`: the requested proof was independently observed, or leak-only
+  validation completed.
+- `unconfirmed`: B2 was dispatched but no independent proof was obtained.
+- `transient_miss`: a calibrated one-shot stage did not reach its required
+  state, so the disturbed worker state was discarded.
+- `requirement_missing` or `transport_error`: the run could not safely reach
+  the chain.
+
+When a transient miss occurs, confirm the complete target contract first. Use
+a fresh lab worker/container before treating a retry as meaningful.
+
+## Evidence
+
+`--evidence-dir` records stage responses, B1 analysis, the optional verification
+response and `run.json`. The record includes the exact profile digest, profile
+status and effective worker count.
+
+B1 evidence may contain disclosed process memory. Treat it as sensitive and
+inspect it before sharing.
+
+## Tests
 
 ```sh
 python3 -m unittest discover -s tests -v
 ```
 
-## Exit codes
-
-```text
-0  chain completed or --leak-only succeeded
-2  no valid B1 leak / CLI usage error from argparse
-3  A2 did not match its calibrated outcome
-4  B2 returned an HTTP response and is unconfirmed
-5  one or more worker pins were lost
-```
-
+The profile catalog is dynamic. Use `./php2shell-eth.py profiles` for the
+current runnable set rather than relying on a copied list.

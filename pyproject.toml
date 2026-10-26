@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "php2shell-eth"
+version = "0.2.0"
+description = "Profile-driven PHP request-lifecycle research PoC"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "textual>=8.0,<9.0",
+]
+
+[project.scripts]
+php2shell-eth = "cli:main"
+
+[tool.setuptools]
+py-modules = ["cli"]
+
+[tool.setuptools.packages.find]
+include = ["chains*", "core*", "profiles*", "tui*"]
+
+[tool.setuptools.package-data]
+"profiles.modphp_pinned" = ["manifests/*.json"]

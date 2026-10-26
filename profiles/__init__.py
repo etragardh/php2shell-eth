@@ -1,64 +1,46 @@
-"""Dynamically discovered profiles used by the exploit runner."""
+"""Dynamic discovery of self-contained executable profile manifests."""
 
-from importlib import import_module
-from pkgutil import iter_modules
+from __future__ import annotations
 
-from .types import (
-    A1Profile,
-    A2Profile,
-    AbiLayout,
-    AllocatorLayout,
-    B1Profile,
-    B2Profile,
-    HeapOffsets,
-    Profile,
-    SymbolOffsets,
-    TargetEnvironment,
-)
+from importlib import resources
+
+from core.catalog import ProfileCatalog
+from core.profile import ProfileSpec
+from .modphp_pinned._loader import LoadedManifest, load_manifest
 
 
-def _discover_profiles() -> dict[str, Profile]:
-    discovered: dict[str, Profile] = {}
-    modules = sorted(
-        module.name
-        for module in iter_modules(__path__)
-        if not module.ispkg
-        and module.name != "types"
-        and not module.name.startswith("_")
+def discover_manifests() -> tuple[LoadedManifest, ...]:
+    root = resources.files("profiles.modphp_pinned").joinpath("manifests")
+    loaded = tuple(
+        load_manifest(item)
+        for item in sorted(root.iterdir(), key=lambda value: value.name)
+        if item.name.endswith(".json")
     )
-    for module_name in modules:
-        module = import_module(f"{__name__}.{module_name}")
-        profile = getattr(module, "PROFILE", None)
-        if not isinstance(profile, Profile):
-            raise TypeError(
-                f"{module.__name__} must expose PROFILE as a Profile instance"
-            )
-        profile.validate()
-        if profile.name in discovered:
-            raise ValueError(f"duplicate profile name: {profile.name}")
-        discovered[profile.name] = profile
-    if not discovered:
-        raise RuntimeError("no profile modules found")
-    return discovered
+    if not loaded:
+        raise RuntimeError("no active profile manifests found")
+    profile_ids = [item.profile.id for item in loaded]
+    if len(profile_ids) != len(set(profile_ids)):
+        raise ValueError("duplicate profile id in active manifests")
+    track_ids = [item.leaf.track.id for item in loaded]
+    if len(track_ids) != len(set(track_ids)):
+        raise ValueError("duplicate target track in active manifests")
+    return loaded
 
 
-PROFILES = _discover_profiles()
-DEFAULT_PROFILE = "php-8.3.35-arm64-official"
-if DEFAULT_PROFILE not in PROFILES:
-    raise RuntimeError(f"default profile is missing: {DEFAULT_PROFILE}")
+def discover_profiles() -> dict[str, ProfileSpec[object]]:
+    return {item.profile.id: item.profile for item in discover_manifests()}
 
+
+MANIFESTS = discover_manifests()
+PROFILES = {item.profile.id: item.profile for item in MANIFESTS}
+PROFILE_LEAVES = {item.leaf.profile_id: item.leaf for item in MANIFESTS}
+PROFILE_CATALOG = ProfileCatalog(item.leaf for item in MANIFESTS)
 
 __all__ = (
-    "A1Profile",
-    "A2Profile",
-    "AbiLayout",
-    "AllocatorLayout",
-    "B1Profile",
-    "B2Profile",
-    "DEFAULT_PROFILE",
-    "HeapOffsets",
+    "MANIFESTS",
     "PROFILES",
-    "Profile",
-    "SymbolOffsets",
-    "TargetEnvironment",
+    "PROFILE_LEAVES",
+    "PROFILE_CATALOG",
+    "discover_manifests",
+    "discover_profiles",
 )

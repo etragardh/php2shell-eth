@@ -1,0 +1,372 @@
+{
+  "identity": {
+    "php_code_build_id": "libphp.so:sha256:b0b32ebb4f2a8ce6431f136b8f3453520161c6cbfe937922f2b1c2e52da9897e",
+    "platform_manifest_digest": "sha256:175ef7a18e4babc84a493ea4188b8339c2e53e9cff1937205f19ebc4d2c79660",
+    "runtime_bundle_id": "docker.io/library/php@sha256:175ef7a18e4babc84a493ea4188b8339c2e53e9cff1937205f19ebc4d2c79660",
+    "track": {
+      "architecture": "amd64",
+      "default_workers": 150,
+      "ini_contract_id": "no-main-ini",
+      "php_release": "8.3.32",
+      "runtime_product": "docker-library/php",
+      "sapi": "apache2handler-prefork",
+      "worker_default_source": "docker-library Apache mpm_prefork default"
+    }
+  },
+  "manifest_digest": "sha256:bc2d89d5ec5d3662a5cb55bc6dd1965ecf25048c9bf35ce0b79eab60e0754c82",
+  "profile": {
+    "calibration": {
+      "a1": {
+        "big": 82,
+        "big_alt_name": 4,
+        "big_name": 96,
+        "big_name_count": 31,
+        "big_size": 8000,
+        "burner_long_name": 400,
+        "burner_long_name_count": 1,
+        "burner_name": 4,
+        "burner_size": 4000,
+        "burners": 20,
+        "calibration_file_candidates": [
+          845,
+          846,
+          847,
+          848,
+          849,
+          850,
+          851,
+          852,
+          853,
+          854,
+          855,
+          856,
+          857,
+          858,
+          859,
+          860,
+          861,
+          862,
+          863,
+          864,
+          865,
+          866,
+          867,
+          868,
+          869,
+          870,
+          871,
+          872,
+          873,
+          874,
+          875,
+          876,
+          877,
+          878,
+          879,
+          880,
+          881,
+          882,
+          883,
+          884,
+          885
+        ],
+        "content_type_1": 103,
+        "content_type_2": 231,
+        "depth": 63,
+        "expected_cookie": false,
+        "expected_status": 200,
+        "files": 848,
+        "filler_name": 103,
+        "filler_value": 8,
+        "fillers": 1,
+        "late_groom_alt_value": 32,
+        "late_groom_alt_value_count": 5,
+        "late_groom_fields": 14,
+        "late_groom_name": 200,
+        "late_groom_value": 8,
+        "live_files": 2,
+        "progress_size": 120,
+        "query_long_name_count": 0,
+        "query_long_name_length": 8,
+        "query_name_length": 8,
+        "query_params": 31,
+        "query_released_fields": 0,
+        "query_released_long_replacement_count": 0,
+        "query_released_long_replacement_length": 1,
+        "query_released_name_length": 4,
+        "query_released_replacement_length": 1,
+        "query_released_value_length": 39,
+        "query_secondary_released_fields": 41,
+        "query_secondary_released_name_length": 4,
+        "query_secondary_released_replacement_length": 32,
+        "query_secondary_released_value_length": 32,
+        "query_value_length": 96,
+        "released_alt_value": 8,
+        "released_alt_value_count": 3,
+        "released_fields": 26,
+        "released_long_replacement_count": 3,
+        "released_long_replacement_value": 4000,
+        "released_name": 32,
+        "released_replacement_value": 32,
+        "released_value": 32,
+        "sid_late": true,
+        "sid_size": 80,
+        "tail_big_count": 0,
+        "tail_big_size": 8176,
+        "transport_chunk_size": 16384
+      },
+      "a2": {
+        "depth": 63,
+        "expected_status": 200,
+        "fillers": 115,
+        "parts": 880
+      },
+      "abi": {
+        "byte_order": "little",
+        "command_string_offset": 168,
+        "execute_argument_extra": 0,
+        "execute_argument_extra_offset": 92,
+        "execute_argument_offset": 80,
+        "execute_argument_type": 6,
+        "execute_argument_type_offset": 88,
+        "execute_call_info": 0,
+        "execute_call_info_offset": 40,
+        "execute_data_offset": 64,
+        "execute_num_args": 1,
+        "execute_num_args_offset": 44,
+        "hashtable_data_offset": 16,
+        "hashtable_destructor_offset": 48,
+        "hashtable_flags": 16,
+        "hashtable_flags_offset": 8,
+        "hashtable_gc_refcount": 1,
+        "hashtable_gc_refcount_offset": 0,
+        "hashtable_gc_type": 7,
+        "hashtable_gc_type_offset": 4,
+        "hashtable_internal_pointer": 0,
+        "hashtable_internal_pointer_offset": 36,
+        "hashtable_mask": 0,
+        "hashtable_mask_offset": 12,
+        "hashtable_n_elements": 1,
+        "hashtable_n_elements_offset": 28,
+        "hashtable_n_used": 1,
+        "hashtable_n_used_offset": 24,
+        "hashtable_next_free": 0,
+        "hashtable_next_free_offset": 40,
+        "hashtable_size": 1,
+        "hashtable_size_offset": 32,
+        "pointer_size": 8,
+        "reference_gc_refcount": 1,
+        "reference_gc_refcount_offset": 0,
+        "reference_gc_type": 10,
+        "reference_gc_type_offset": 4,
+        "reference_size": 32,
+        "reference_start": 8,
+        "reference_stride": 32,
+        "reference_target_offset": 8,
+        "reference_zval_type": 263,
+        "reference_zval_type_offset": 16,
+        "string_data_offset": 24,
+        "string_gc_refcount": 1,
+        "string_gc_refcount_offset": 0,
+        "string_gc_type": 262,
+        "string_gc_type_offset": 4,
+        "string_hash": 0,
+        "string_hash_offset": 8,
+        "string_length_offset": 16
+      },
+      "allocator": {
+        "chunk_alignment": 2097152,
+        "chunk_free_pages_offset": 24,
+        "chunk_free_tail_offset": 28,
+        "chunk_header_size": 36,
+        "chunk_heap_offset": 0,
+        "chunk_next_offset": 8,
+        "chunk_number_offset": 32,
+        "chunk_prev_offset": 16,
+        "heap_slot_from_main": 64,
+        "image_alignment": 4096,
+        "image_window": 33554432,
+        "main_cluster_min_slots": 0,
+        "main_cluster_min_unique": 0,
+        "main_cluster_min_unique_ratio": 0.0,
+        "max_chunk_number": 1048576,
+        "max_free_pages": 511,
+        "max_free_tail": 512,
+        "max_libphp_main_delta": 67108864,
+        "min_dtor_repetitions": 16,
+        "min_free_tail": 1,
+        "min_libphp_main_delta": 0,
+        "page_size": 4096,
+        "pointer_alignment": 8,
+        "user_pointer_max": 281474976710656,
+        "user_pointer_min": 70368744177664
+      },
+      "b1": {
+        "carrier_pages": 156,
+        "carrier_sprays": 0,
+        "data_start": 4120,
+        "expected_status": 200,
+        "fake_length": 2621440,
+        "fake_string_gc_refcount": 0,
+        "fake_string_gc_type": 22,
+        "fake_string_hash": 0,
+        "marker": {
+          "$bytes": "2f42314c45414b2f"
+        },
+        "nested_depth": 12,
+        "nested_fields": 0,
+        "page_spec": [
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          502,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256
+        ],
+        "release_sprays": false,
+        "small_after_nested": false,
+        "small_fields": 0,
+        "small_name_size": 64,
+        "small_value_size": 64,
+        "sprays": 28,
+        "tail_pages": 256,
+        "transport_chunk_size": 262144
+      },
+      "b2": {
+        "first_sprays": 500,
+        "hold_seconds": 0,
+        "name_length": 10,
+        "reference_refcount": 1,
+        "second_sprays": 495,
+        "value_length": 384
+      },
+      "heap": {
+        "fake_array": 1008536,
+        "stale_session_id": 589056,
+        "stale_session_reference": 501632
+      },
+      "symbols": {
+        "zif_system": 3849856,
+        "zval_ptr_dtor": 4842832
+      }
+    },
+    "chain_id": "modphp-pinned-v1",
+    "id": "modphp-pinned-v1/php-8.3.32-amd64-official-no-ini",
+    "provenance": "migrated exact A1/B1/A2/B2 calibration php-8.3.32-amd64-official-no-ini; bounded pipeline fields intentionally excluded",
+    "requirements": [
+      "apache2handler with mpm_prefork",
+      "matching immutable image, binary, extensions and effective ini",
+      "session upload progress enabled",
+      "one free child isolated by N-1 prefork worker pins"
+    ],
+    "scheduler": {
+      "default_workers": 150,
+      "id": "apache-prefork-n-minus-one/v1"
+    },
+    "target": {
+      "architecture": "x86_64",
+      "binary_sha256": "b0b32ebb4f2a8ce6431f136b8f3453520161c6cbfe937922f2b1c2e52da9897e",
+      "extension_configs": [
+        "docker-php-ext-opcache.ini",
+        "docker-php-ext-sodium.ini"
+      ],
+      "image": "php:8.3.32-apache",
+      "image_id": "sha256:175ef7a18e4babc84a493ea4188b8339c2e53e9cff1937205f19ebc4d2c79660",
+      "ini_settings": [
+        [
+          "loaded_configuration_file",
+          "(none)"
+        ],
+        [
+          "display_errors",
+          "On"
+        ],
+        [
+          "memory_limit",
+          "128M"
+        ],
+        [
+          "post_max_size",
+          "8M"
+        ],
+        [
+          "max_input_vars",
+          "1000"
+        ],
+        [
+          "max_input_nesting_level",
+          "64"
+        ],
+        [
+          "max_execution_time",
+          "30"
+        ],
+        [
+          "variables_order",
+          "EGPCS"
+        ],
+        [
+          "session.save_handler",
+          "files"
+        ],
+        [
+          "session.upload_progress.enabled",
+          "On"
+        ],
+        [
+          "session.sid_length",
+          "32"
+        ],
+        [
+          "session.sid_bits_per_character",
+          "4"
+        ],
+        [
+          "session.use_strict_mode",
+          "0"
+        ],
+        [
+          "output_buffering",
+          "0"
+        ]
+      ],
+      "php_ini_sha256": "none",
+      "php_version": "8.3.32",
+      "sapi": "apache2handler/prefork"
+    }
+  },
+  "qualification": {
+    "attempts": 1,
+    "bound_manifest_digest": "sha256:bc2d89d5ec5d3662a5cb55bc6dd1965ecf25048c9bf35ce0b79eab60e0754c82",
+    "campaign_id": "legacy-worker-pinning-import-20261026",
+    "chain_revision": "modphp-pinned-v1/legacy-worker-import-2026-10-26",
+    "run_record_sha256": "8843f1de51dac9894727f572e94ca3c749eb26f24d496f9b2dbbeebbd258c824",
+    "scheduler_revision": "apache-prefork-n-minus-one/v1",
+    "status": "candidate",
+    "successes": 1,
+    "summary": "Exact worker-pinning calibration migrated with a preserved historical independent-success run; fresh pinned-v1 qualification pending."
+  },
+  "schema_version": 1
+}
